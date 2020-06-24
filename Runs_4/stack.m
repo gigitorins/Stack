@@ -178,13 +178,11 @@ Esegui[x_] := Module[ {temp},
 (*************************************************************************** FITNESS ***************************************************************************)
 
 counterDUtot = 0;
-nstacktest = 0;   (* Numero di eventuali coppie di prova random per testare gli individui *)
 corrstacks = {};
 
 (* Stack e table di prova *)
-listastack = {{l,a,u,n,e},{},{u,n,v,e},{s,i,r,l,a,u,n,e,v,e},{v,r,l},{u,n,i,v,e,r}};
-listatable = {{s,i,r,v,e},{u,n,i,v,e,s,r,a,l,e},{i,r,s,a,l,e},{},{u,n,i,e,s,a,e},{s,a,l,e}};
-Do[ stackRand;  AppendTo[listastack, stack]; AppendTo[listatable, table], {nstacktest} ];
+listastack = {{l,a,u,n,e},{},{u,n,v,e},{s,i,r,l,a,u,n,e,v,e},{v,r,l},{u,n,i,v,e,r},{e,r,n},{a,u,i,r},{a,i,v},{i,n,r,u,v,a,l,e},{l,v,i},{e,r,l,u,n,s,i,a},{s,a},{s,r,u,v,e,a,l,i,n},{}};
+listatable = {{s,i,r,v,e},{u,n,i,v,e,s,r,a,l,e},{i,r,s,a,l,e},{},{u,n,i,e,s,a,e},{s,a,l,e},{e,a,u,v,i,s,l},{e,e,n,l,s,v},{r,u,s,e,n,e,l},{e,s},{e,n,a,s,r,e,u},{e,v},{n,r,e,l,v,e,i,u},{e},{s,e,l,u,r,a,v,n,e,i}};
 
 Fitness[individuo_] := Module[ {temp, voto=1, listheads},
 
@@ -440,13 +438,13 @@ soluzionitotali = {};
 data = {};
 
 
-run := Module[ {pop, countgen=0},
+run := Module[ {pop, countgen=1},
 
     listasoluzioni = {};
     pop = PopIniziale;
 
     (* Creo generazioni successive finchè non trovo la soluzione *)
-    NestWhile[ (Generazione[#])&, pop, (countgen += 1; countgen < Ngen && Length[listasoluzioni] === 0) &];
+    NestWhile[ (Generazione[#])&, pop, (Print[countgen += 1]; countgen < Ngen && Length[listasoluzioni] === 0) &];
 
     If[ Length[listasoluzioni] > 0, soluzionitotali = Join[soluzionitotali, {listasoluzioni[[1]]}] ];
     countgen += -1;

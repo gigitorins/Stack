@@ -23,7 +23,6 @@ NN := Module[ {temp, indiceNN=1},
 ];
 
 
-
 (*************************************************************************** COMANDI ***************************************************************************)
 
 MS[value_] := Module[ {temp},
@@ -137,7 +136,6 @@ CompletamentoInd[ind_, inddpt_, initialdepth_] := Module[{temp, Pos, pos, com, s
 ];
 
 
-
 (************************************************************************ ALTRE FUNZIONI ************************************************************************)
 
 IndiceBlock[x_, y_] := Module[ {temp=1, list1, list2},
@@ -174,34 +172,32 @@ Esegui[x_] := Module[ {temp},
 ];
 
 
-
 (*************************************************************************** FITNESS ***************************************************************************)
 
 counterDUtot = 0;
-nstacktest = 0;   (* Numero di eventuali coppie di prova random per testare gli individui *)
 corrstacks = {};
 
 (* Stack e table di prova *)
 listastack = {{l,a,u,n,e},{},{u,n,v,e},{s,i,r,l,a,u,n,e,v,e},{v,r,l},{u,n,i,v,e,r}};
 listatable = {{s,i,r,v,e},{u,n,i,v,e,s,r,a,l,e},{i,r,s,a,l,e},{},{u,n,i,e,s,a,e},{s,a,l,e}};
-Do[ stackRand;  AppendTo[listastack, stack]; AppendTo[listatable, table], {nstacktest} ];
+Do[ stackRand;  AppendTo[listastack, stack]; AppendTo[listatable, table], {14} ];
 
-Fitness[individuo_] := Module[ {temp, voto=1, listheads},
+Fitness[individuo_] := Module[ {temp, voto=0, listheads},
 
     temp = individuo;
     listheads = Map[Head, Level[temp, Infinity]];
 
     If[ Depth[temp] > 8 ||  Length[listasoluzioni] > 0,
 
-        voto = 5. * Length [Union[listheads] ] * Length[listastack], (* Penalizzo individui troppo lunghi *)
+        voto = 10., (* Penalizzo individui troppo lunghi, in questo modo sto già ottimizzando la soluzione e sto evitando loop *)
 
         (************************ Fitness ************************)
         corrstacks = {};
-        voto += 5. * Length [Union[listheads] ] * Length[listastack];   (* Premio un patrimonio genetico vario *)
+        voto += 50. * Length [Union[listheads] ] * Length[listastack]; (* Premio un patrimonio genetico vario *)
         voto += Total[ ( (provaFitness[temp,#])& /@ listastack ) ];		(* Calcolo il voto sugli stack *)
-		
+        
         (* Premio gli individui che costruiscono più stack contemporanee alla stessa velocità *)		
-        voto += 20. * Total[corrstacks] / (Max[corrstacks] - Min[corrstacks] + 1);
+        voto += 200. * Total[corrstacks] / (Max[corrstacks] - Min[corrstacks] + 1);
 		
         (* Se trovo la soluzione la aggiungo alla lista delle soluzioni, inoltre evito di valutare ulteriormente la fitness per la generazione corrente *)
         If[ Total[corrstacks] === Length[listastack] * Length[wanted],  temp = individuo;   AppendTo[listasoluzioni, temp] ];
@@ -224,10 +220,9 @@ provaFitness[individuo_, stackprova_] := Module[ {temp, stackpos, votoprovv=0, i
     indiceTCB = IndiceBlock[stack, wanted];    (* Controllo correttezza dello stack dopo l'azione dell'individuo *)
     AppendTo[corrstacks, indiceTCB-1];
 
-    votoprovv += 10. * (indiceTCB-1);
+    votoprovv += 100. * (indiceTCB-1);
     votoprovv
 ];
-
 
 
 (******************************************************************** STACK E TABLE CASUALI ********************************************************************)
@@ -254,7 +249,6 @@ RandomSampleZ[lis_List, num_] := Module[{len, selectfunc, ll, nn, aa},
     selectfunc[{ll_, nn_}] := {Drop[ll, {aa = Random[Integer, {1, Length[ll]}], aa}], nn - 1};
     #[[ Ordering[Random[] & /@ #] ]] & @ Complement[lis, First[Nest[selectfunc[#] &, {lis, num}, num]]]
 ];
-
 
 
 (************************************************************************** CROSSOVER **************************************************************************)
@@ -380,7 +374,6 @@ MutaIndividuo[individuo_]:= Module[ {temp, Pos, pos, rndcomm, cmdpos, cmdcont, c
 ];
 
 
-
 (***************************************************************** GENERAZIONE DI POPOLAZIONI *****************************************************************)
 
 PopIniziale := Table[ generaIndividuo , {Npop} ];
@@ -430,8 +423,8 @@ Generazione[popolazione_List] := Module[ {temp, votipop, intervallo, genitori, f
 
 (************************************************************************** RUN **************************************************************************)
 
-(**** Variabili per le run ****)
-Npop = 100;
+(**** Parametri per le run ****)
+Npop = 200;
 Ngen = 200;
 pc = 0.8;
 pm = 0.15;
@@ -507,7 +500,7 @@ testcorrettezzaNEW := Module[ {ctest, numtest = 200},
     Do[ stackRand;  AppendTo[stacklist, {stack,table}], {numtest} ];
     ctest = Table[ Plus @@ Map[ (tryAS[soluzionitotali[[ll]],#])&, stacklist], {ll,1,Length[soluzionitotali]} ];
     ctest = Map[ (#*100./numtest)& ,ctest];
-    Export[ "a_correttezza.dat", ctest , "Table",  "FieldSeparators" -> " ", OverwriteTarget -> True];                      
+    Export[ "a_correttezzaN.dat", ctest , "Table",  "FieldSeparators" -> " ", OverwriteTarget -> True];                      
 ];
 
 
@@ -534,5 +527,3 @@ runs := Module[ {numrun=100, listrun, timesrun={}, generations={}},
 
 
 runs;
-Print[ AbsoluteTiming[ testcorrettezza ][[1]] ];
-Print[ AbsoluteTiming[ testcorrettezzaNEW ][[1]] ];

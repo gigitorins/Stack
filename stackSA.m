@@ -144,7 +144,7 @@ IndiceBlock[x_, y_] := Module[ {temp=1, list1, list2},
 
     list1 = x;
     list2 = y;
-	While[ temp <= Length[x], If[ x[[temp]] === y[[temp]] , temp++, Break[] ] ];
+    While[ temp <= Length[x], If[ x[[temp]] === y[[temp]] , temp++, Break[] ] ];
 	temp
 ];
 
@@ -199,7 +199,7 @@ Fitness[individuo_] := Module[ {temp, voto=1, listheads},
         corrstacks = {};
         voto += 5. * Length [Union[listheads] ] * Length[listastack];   (* Premio un patrimonio genetico vario *)
         voto += Total[ ( (provaFitness[temp,#])& /@ listastack ) ];		(* Calcolo il voto sugli stack *)
-		
+        
         (* Premio gli individui che costruiscono più stack contemporanee alla stessa velocità *)		
         voto += 20. * Total[corrstacks] / (Max[corrstacks] - Min[corrstacks] + 1);
 		
@@ -380,7 +380,6 @@ MutaIndividuo[individuo_]:= Module[ {temp, Pos, pos, rndcomm, cmdpos, cmdcont, c
 ];
 
 
-
 (***************************************************************** GENERAZIONE DI POPOLAZIONI *****************************************************************)
 
 PopIniziale := Table[ generaIndividuo , {Npop} ];
@@ -389,11 +388,13 @@ PopIniziale := Table[ generaIndividuo , {Npop} ];
 Voti[popolazione_] := Map[ Fitness, popolazione ];
 
 
-Suddivisione[ voti_, criterio_] := Module[ {totalevoti, frazioni, suddivisione},
+Suddivisione[ voti_, criterio_] := Module[ {temp, voitnew, totalevoti, frazioni, suddivisione},
 
     Which[  criterio === FitnessProportionate,
-            totalevoti = Total[voti];
-            frazioni = voti/totalevoti;
+            temp = voti;
+            voitnew = Exp[temp/T];
+            totalevoti = Total[voitnew];
+            frazioni = voitnew/totalevoti;
             suddivisione = Table[ Sum[ frazioni[[j]], {j,1,i}] , {i,1,Npop} ],
             True, Print["Criterio non definito"]; Abort[]
         ];
@@ -414,6 +415,8 @@ Ricombina[popolazione_] := Module[ {temp,figli},
 
 Generazione[popolazione_List] := Module[ {temp, votipop, intervallo, genitori, figli, rr, indice, meanvoti},
 
+    counterT++;    
+    If[ Mod[counterT,4] == 0,  T = T*0.5];
     votipop = Voti[popolazione];			
     meanvoti = Mean[votipop];
     intervallo = Suddivisione[votipop, FitnessProportionate];
@@ -430,9 +433,11 @@ Generazione[popolazione_List] := Module[ {temp, votipop, intervallo, genitori, f
 
 (************************************************************************** RUN **************************************************************************)
 
-(**** Variabili per le run ****)
-Npop = 100;
+(**** Parametri per le run ****)
+Npop = 150;
 Ngen = 200;
+Tin = 1.;
+counterTin = 0;
 pc = 0.8;
 pm = 0.15;
 wanted = {u,n,i,v,e,r,s,a,l,e};    (* Parola desiderata *)
@@ -443,6 +448,7 @@ data = {};
 run := Module[ {pop, countgen=0},
 
     listasoluzioni = {};
+    T = Tin; counterT = counterTin;
     pop = PopIniziale;
 
     (* Creo generazioni successive finchè non trovo la soluzione *)
@@ -534,5 +540,4 @@ runs := Module[ {numrun=100, listrun, timesrun={}, generations={}},
 
 
 runs;
-Print[ AbsoluteTiming[ testcorrettezza ][[1]] ];
 Print[ AbsoluteTiming[ testcorrettezzaNEW ][[1]] ];
